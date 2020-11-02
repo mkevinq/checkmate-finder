@@ -1,0 +1,45 @@
+﻿CONJECTUREPANEL Conjectures
+PROOF "P→(T∧R), P ⊢ T"
+INFER P→(T∧R),
+     P 
+     ⊢ T 
+FORMULAE
+0 T,
+1 T∧R,
+2 R,
+3 P,
+4 P→T∧R,
+5 P→(T∧R)
+IS
+SEQ (cut[B,C\1,0]) ("→ elim"[A,B\3,1]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\0,2]) (hyp[A\1])) (hyp[A\0])
+END
+CONJECTUREPANEL Conjectures
+PROOF "Q→(S _B∧S _R), Q ⊢ S _B"
+INFER Q→(S _B∧S _R),
+     Q 
+     ⊢ S _B 
+FORMULAE
+0 S _B,
+1 S _B∧S _R,
+2 S _R,
+3 Q,
+4 Q→S _B∧S _R,
+5 Q→(S _B∧S _R)
+IS
+SEQ (cut[B,C\1,0]) ("→ elim"[A,B\3,1]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) (LAYOUT "∧ elim" (0) ("∧ elim(L)"[A,B\0,2]) (hyp[A\1])) (hyp[A\0])
+END
+CONJECTUREPANEL Conjectures
+PROOF "A→(¬B∧¬C∧¬D∧¬E∧¬F∧¬G), A ⊢ ¬G"
+INFER A→(¬B∧¬C∧¬D∧¬E∧¬F∧¬G),
+     A 
+     ⊢ ¬G 
+FORMULAE
+0 ¬G,
+1 ¬B∧¬C∧¬D∧¬E∧¬F∧¬G,
+2 ¬B∧¬C∧¬D∧¬E∧¬F,
+3 A,
+4 A→¬B∧¬C∧¬D∧¬E∧¬F∧¬G,
+5 A→(¬B∧¬C∧¬D∧¬E∧¬F∧¬G)
+IS
+SEQ (cut[B,C\1,0]) ("→ elim"[A,B\3,1]) (hyp[A\4]) (hyp[A\3]) (cut[B,C\0,0]) (LAYOUT "∧ elim" (0) ("∧ elim(R)"[A,B\2,0]) (hyp[A\1])) (hyp[A\0])
+END
