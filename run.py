@@ -190,7 +190,7 @@ def example_theory(starting_grid):
             not_safe &= s[i+1][j-1]
           if (i+1 < size):
             not_safe &= s[i+1][j]
-          if (i+1 < size and j-1 >= 0):
+          if (i+1 < size and j+1 < size):
             not_safe &= s[i+1][j+1]
           if (j-1 >= 0):
             not_safe &= s[i][j-1]
@@ -231,7 +231,7 @@ def example_theory(starting_grid):
             around_king &= s[i+1][j-1]
           if (i+1 < size):
             around_king &= s[i+1][j]
-          if (i+1 < size and j-1 >= 0):
+          if (i+1 < size and j+1 < size):
             around_king &= s[i+1][j+1]
           if (j-1 >= 0):
             around_king &= s[i][j-1]
