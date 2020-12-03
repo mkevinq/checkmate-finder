@@ -21,6 +21,7 @@ def init_vars(name, disp):
   return grid
 
 # Create the variables
+checkmate = Var("checkmate")
 K = init_vars('K', False) #King
 s = init_vars('s', False) #not safe square
 b = init_vars('b', False) #enemy bishop
@@ -48,118 +49,49 @@ p_d = init_vars('p', True)
 # Sets the propositions based on the dict given
 def set_board(grid):
   f = true
+  f &= ~checkmate
   #For every position recorded, set the proposition for the piece in that 
   #position to true
   for i in range(size):
     for j in range(size):
       if (grid[i][j] == 'K'):
         f &= K[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
-        f &= ~n[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'b'):
         f &= b[i][j]
-        f &= ~K[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
-        f &= ~n[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'r'):
         f &= r[i][j]
-        f &= ~b[i][j]
-        f &= ~K[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
-        f &= ~n[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'k'):
         f &= k[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~K[i][j]
-        f &= ~q[i][j]
-        f &= ~n[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'n'):
         f &= n[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
-        f &= ~K[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'q'):
         f &= q[i][j]
-        f &= ~n[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~K[i][j]
-        f &= ~p[i][j]
       elif (grid[i][j] == 'p'):
         f &= p[i][j]
-        f &= ~n[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~K[i][j]
-        f &= ~q[i][j]
-      else:
-        f &= ~n[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
-        f &= ~K[i][j]
-        f &= ~p[i][j]
   return f
 
 #Prints the solution
 def display_solution(sol):
-  K_grid = string_grid(K_d, sol)
-  s_grid = string_grid(s_d, sol)
-  r_grid = string_grid(r_d, sol)
-  k_grid = string_grid(k_d, sol)
-  n_grid = string_grid(n_d, sol)
-  q_grid = string_grid(q_d, sol)
-  p_grid = string_grid(p_d, sol)
-  
-  print("K_grid:\n"+ K_grid)
-  print("s_grid:\n"+ s_grid)
-  print("r_grid:\n"+ r_grid)
-  print("k_grid:\n"+ k_grid)
-  print("n_grid:\n"+ n_grid)
-  print("q_grid:\n"+ q_grid)
-  print("p_grid:\n"+ p_grid)
-
-  # Check for checkmate
-  # find king
-  found = False
-  for i in range(size):
-    for j in range(size):
-      if sol.get(f'K_{i}_{j}', True):
-        found = True
-      if found:
-        break
-    if found:
-      break
-
-  # check spaces around king
-  if (sol.get(s_d[i-1][j-1], False if i-1>=0 and j-1 >=0 else True) and
-    sol.get(s_d[i-1][j], False if i-1>=0 else True) and
-    sol.get(s_d[i-1][j+1], False if i-1>=0 and j<size else True) and
-    sol.get(s_d[i+1][j-1], False if i+1<size and j-1>=0 else True) and
-    sol.get(s_d[i+1][j], False if i+1<size else True) and
-    sol.get(s_d[i+1][j+1], False if i+1<size and j+1<size else True) and
-    sol.get(s_d[i][j-1], False if j-1>=0 else True) and
-    sol.get(s_d[i][j+1], False if j+1<0 else True)):
-    print("Checkmate")
+  if T.is_satisfiable():
+    print("No Checkmate")
+    print("number of solutions: " + str(T.count_solutions()))
+    K_grid = string_grid(K_d, sol)
+    s_grid = string_grid(s_d, sol)
+    r_grid = string_grid(r_d, sol)
+    k_grid = string_grid(k_d, sol)
+    n_grid = string_grid(n_d, sol)
+    q_grid = string_grid(q_d, sol)
+    p_grid = string_grid(p_d, sol)
+    
+    print("K_grid:\n"+ K_grid)
+    print("s_grid:\n"+ s_grid)
+    print("r_grid:\n"+ r_grid)
+    print("k_grid:\n"+ k_grid)
+    print("n_grid:\n"+ n_grid)
+    print("q_grid:\n"+ q_grid)
+    print("p_grid:\n"+ p_grid)
   else:
-    print("Not Checkmate")
+    print("Checkmate")
 
 # Return a string of 0s and 1s for each proposition grid
 def string_grid(prop_grid, sol):
@@ -286,6 +218,27 @@ def example_theory(starting_grid):
             not_safe &= s[i-1][j-2]
           E.add_constraint(~n[i][j] | not_safe)
 
+        # check spaces around king for checkmate
+        if starting_grid[i][j] == "K":
+          around_king = true
+          if (i-1 >= 0 and j-1 >= 0):
+            around_king &= s[i-1][j-1]
+          if (i-1 >= 0):
+            around_king &= s[i-1][j]
+          if (i-1 >= 0 and j+1 < size):
+            around_king &= s[i-1][j+1]
+          if (i+1 < size and j-1 >= 0):
+            around_king &= s[i+1][j-1]
+          if (i+1 < size):
+            around_king &= s[i+1][j]
+          if (i+1 < size and j-1 >= 0):
+            around_king &= s[i+1][j+1]
+          if (j-1 >= 0):
+            around_king &= s[i][j-1]
+          if (j+1 < size):
+            around_king &= s[i][j+1]
+          E.add_constraint(around_king.negate() | checkmate)
+
     #Return theory
     return E
 
@@ -321,4 +274,3 @@ if __name__ == "__main__":
 
     sol = T.solve()
     display_solution(sol)
-    print("number of solutions: " + str(T.count_solutions()))
