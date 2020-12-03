@@ -1,6 +1,6 @@
 from nnf import Var
 from lib204 import Encoding
-from nnf import true
+from nnf import true, false
 
 #Global variables
 size = 5 #size of grid (8 is an 8x8 grid)
@@ -49,32 +49,82 @@ p_d = init_vars('p', True)
 # Sets the propositions based on the dict given
 def set_board(grid):
   f = true
-  f &= ~checkmate
   #For every position recorded, set the proposition for the piece in that 
   #position to true
   for i in range(size):
     for j in range(size):
       if (grid[i][j] == 'K'):
         f &= K[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~q[i][j]
+        f &= ~n[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'b'):
         f &= b[i][j]
+        f &= ~K[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~q[i][j]
+        f &= ~n[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'r'):
         f &= r[i][j]
+        f &= ~b[i][j]
+        f &= ~K[i][j]
+        f &= ~k[i][j]
+        f &= ~q[i][j]
+        f &= ~n[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'k'):
         f &= k[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~K[i][j]
+        f &= ~q[i][j]
+        f &= ~n[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'n'):
         f &= n[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~q[i][j]
+        f &= ~K[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'q'):
         f &= q[i][j]
+        f &= ~n[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~K[i][j]
+        f &= ~p[i][j]
       elif (grid[i][j] == 'p'):
         f &= p[i][j]
+        f &= ~n[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~K[i][j]
+        f &= ~q[i][j]
+      else:
+        f &= ~n[i][j]
+        f &= ~b[i][j]
+        f &= ~r[i][j]
+        f &= ~k[i][j]
+        f &= ~q[i][j]
+        f &= ~K[i][j]
+        f &= ~p[i][j]
   return f
 
 #Prints the solution
 def display_solution(sol):
   if T.is_satisfiable():
-    print("No Checkmate")
-    print("number of solutions: " + str(T.count_solutions()))
+    print("Checkmate")
+    # it may take a while to calculate the solutions
+    print("solutions: " + str(T.count_solutions()))
     K_grid = string_grid(K_d, sol)
     s_grid = string_grid(s_d, sol)
     r_grid = string_grid(r_d, sol)
@@ -91,7 +141,7 @@ def display_solution(sol):
     print("q_grid:\n"+ q_grid)
     print("p_grid:\n"+ p_grid)
   else:
-    print("Checkmate")
+    print("No Checkmate")
 
 # Return a string of 0s and 1s for each proposition grid
 def string_grid(prop_grid, sol):
@@ -102,8 +152,11 @@ def string_grid(prop_grid, sol):
     grid += '\n'
   return grid
 
+def iff(left, right):
+  return (left.negate() | right) & (right.negate() | left)
+
 # Temporary example theory
-def example_theory(starting_grid):
+def example_theory():
     E = Encoding()
 
     # Add constraints
@@ -112,19 +165,139 @@ def example_theory(starting_grid):
       for j in range(size):
         not_safe = true
 
-        if starting_grid[i][j] == 'r':
-          safe_j = j
-          safe_i = i
-          for x in range(size):
-            if (x != safe_j):
-              not_safe &= s[i][x]
-            if (x != safe_i):
-              not_safe &= s[x][j]
-          E.add_constraint(~r[i][j] | not_safe)
+        # constraint that says this square is safe if and only if there are no pieces in the way
+        # this is horrible
+        no_danger = true
 
-        #bishop constraints
-        if(starting_grid[i][j]=='b'):
-          for x in range(1, size):
+        # 😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂
+        # check if pawn is not in the way
+        if (i+1 < size):
+          if (j-1 >= 0):
+            no_danger &= ~p[i+1][j-1]
+          if (j+1 < size):
+            no_danger &= ~p[i+1][j+1]
+        
+        # check if bishop is not in the way
+        for x in range(1, size):
+          # diagonal going up right
+          if (i+x < size) and (j+x < size):
+            no_danger &= ~b[i+x][j+x]
+          # diagonal going down right
+          if (i+x < size) and (j-x >= 0):
+            no_danger &= ~b[i+x][j-x]
+          # diagonal going up left
+          if (i-x >= 0) and (j+x < size):
+            no_danger &= ~b[i-x][j+x]
+          # diagonal going down left
+          if (i-x >= 0) and (j-x >= 0):
+            no_danger &= ~b[i-x][j-x]
+        
+        # check if rook is not in the way
+        safe_j = j
+        safe_i = i
+        for x in range(size):
+          if (x != safe_j):
+            no_danger &= ~r[i][x]
+          if (x != safe_i):
+            no_danger &= ~r[x][j]
+
+        # check if queen is not in the way
+        safe_j = j
+        safe_i = i
+        for x in range(size):
+          # Ignore the current position of the queen for diagonals
+          if x != 0:
+            # diagonal going up right
+            if (i+x < size) and (j+x < size):
+              no_danger &= ~q[i+x][j+x]
+            # diagonal going down right
+            if (i+x < size) and (j-x >= 0):
+              no_danger &= ~q[i+x][j-x]
+            # diagonal going up left
+            if (i-x >= 0) and (j+x < size):
+              no_danger &= ~q[i-x][j+x]
+            # diagonal going down left
+            if (i-x >= 0) and (j-x >= 0):
+              no_danger &= ~q[i-x][j-x]
+          
+          # Ignore the current position of the queen rows & cols
+          if (x != safe_j):
+            no_danger &= ~q[i][x]
+          if (x != safe_i):
+            no_danger &= ~q[x][j]
+
+        # check if knight is not in the way
+        if((i+2 < size)and(j+1 < size)): 
+          no_danger &= ~n[i+2][j+1]
+        if((i+2 < size)and(j-1 >= 0)): 
+          no_danger &= ~n[i+2][j-1]
+        if((i-2 >= 0)and(j+1 < size)): 
+          no_danger &= ~n[i-2][j+1]
+        if((i-2 >= 0)and(j-1 >= 0)): 
+          no_danger &= ~n[i-2][j-1]
+        if((i+1 < size)and(j+2 < size)): 
+          no_danger &= ~n[i+1][j+2]
+        if((i-1 >= 0)and(j+2 < size)): 
+          no_danger &= ~n[i-1][j+2]
+        if((i+1 < size)and(j-2 >= 0)):      
+          no_danger &= ~n[i+1][j-2]
+        if((i-1 >= 0)and(j-2 >= 0)): 
+          no_danger &= ~n[i-1][j-2]
+
+        # check if enemy king is not in the way
+        if (i-1 >= 0 and j-1 >= 0):
+          no_danger &= ~k[i-1][j-1]
+        if (i-1 >= 0):
+          no_danger &= ~k[i-1][j]
+        if (i-1 >= 0 and j+1 < size):
+          no_danger &= ~k[i-1][j+1]
+        if (i+1 < size and j-1 >= 0):
+          no_danger &= ~k[i+1][j-1]
+        if (i+1 < size):
+          no_danger &= ~k[i+1][j]
+        if (i+1 < size and j+1 < size):
+          no_danger &= ~k[i+1][j+1]
+        if (j-1 >= 0):
+          no_danger &= ~k[i][j-1]
+        if (j+1 < size):
+          no_danger &= ~k[i][j+1]
+
+        E.add_constraint(iff(no_danger, ~s[i][j]))
+
+        # rook constraints
+        safe_j = j
+        safe_i = i
+        for x in range(size):
+          if (x != safe_j):
+            not_safe &= s[i][x]
+          if (x != safe_i):
+            not_safe &= s[x][j]
+        E.add_constraint(~r[i][j] | not_safe)
+
+      #bishop constraints
+        not_safe = true
+        for x in range(1, size):
+          # diagonal going up right
+          if (i+x < size) and (j+x < size):
+            not_safe &= s[i+x][j+x]
+          # diagonal going down right
+          if (i+x < size) and (j-x >= 0):
+            not_safe &= s[i+x][j-x]
+          # diagonal going up left
+          if (i-x >= 0) and (j+x < size):
+            not_safe &= s[i-x][j+x]
+          # diagonal going down left
+          if (i-x >= 0) and (j-x >= 0):
+            not_safe &= s[i-x][j-x]
+        E.add_constraint(~b[i][j] | not_safe)
+
+      # queen constraints
+        not_safe = true
+        safe_j = j
+        safe_i = i
+        for x in range(size):
+          # Ignore the current position of the queen for diagonals
+          if x != 0:
             # diagonal going up right
             if (i+x < size) and (j+x < size):
               not_safe &= s[i+x][j+x]
@@ -137,107 +310,87 @@ def example_theory(starting_grid):
             # diagonal going down left
             if (i-x >= 0) and (j-x >= 0):
               not_safe &= s[i-x][j-x]
-          E.add_constraint(~b[i][j] | not_safe)
+          
+          # Ignore the current position of the queen rows & cols
+          if (x != safe_j):
+            not_safe &= s[i][x]
+          if (x != safe_i):
+            not_safe &= s[x][j]
 
-        # queen constraints
-        if(starting_grid[i][j]=='q'):
-          safe_j = j
-          safe_i = i
-          for x in range(size):
-            # Ignore the current position of the queen for diagonals
-            if x != 0:
-              # diagonal going up right
-              if (i+x < size) and (j+x < size):
-                not_safe &= s[i+x][j+x]
-              # diagonal going down right
-              if (i+x < size) and (j-x >= 0):
-                not_safe &= s[i+x][j-x]
-              # diagonal going up left
-              if (i-x >= 0) and (j+x < size):
-                not_safe &= s[i-x][j+x]
-              # diagonal going down left
-              if (i-x >= 0) and (j-x >= 0):
-                not_safe &= s[i-x][j-x]
-            
-            # Ignore the current position of the queen rows & cols
-            if (x != safe_j):
-              not_safe &= s[i][x]
-            if (x != safe_i):
-              not_safe &= s[x][j]
+        E.add_constraint(~q[i][j] | not_safe)
 
-          E.add_constraint(~q[i][j] | not_safe)
-
-        # pawn constraints
-        if starting_grid[i][j] == 'p':
-          # Make sure the attack spots are in bounds
-          if (i-1 >= 0):
-            if (j-1 >= 0):
-              not_safe &= s[i-1][j-1]
-            if (j+1 < size):
-              not_safe &= s[i-1][j+1]
-          E.add_constraint(~p[i][j] | not_safe)
-
-        # enemy king constraints
-        if starting_grid[i][j] == "k":
-          # check if corners are in bounds
-          if (i-1 >= 0 and j-1 >= 0):
+      # pawn constraints
+        not_safe = true
+        # Make sure the attack spots are in bounds
+        if (i-1 >= 0):
+          if (j-1 >= 0):
             not_safe &= s[i-1][j-1]
-          if (i-1 >= 0):
-            not_safe &= s[i-1][j]
-          if (i-1 >= 0 and j+1 < size):
+          if (j+1 < size):
             not_safe &= s[i-1][j+1]
-          if (i+1 < size and j-1 >= 0):
-            not_safe &= s[i+1][j-1]
-          if (i+1 < size):
-            not_safe &= s[i+1][j]
-          if (i+1 < size and j+1 < size):
-            not_safe &= s[i+1][j+1]
-          if (j-1 >= 0):
-            not_safe &= s[i][j-1]
-          if (j+1 < size):
-            not_safe &= s[i][j+1]
-          E.add_constraint(~k[i][j] | not_safe)
+        E.add_constraint(~p[i][j] | not_safe)
 
-        #knight constraints
-        if(starting_grid[i][j]=='n'):
-          if((i+2 < size)and(j+1 < size)): 
-            not_safe &= s[i+2][j+1]
-          if((i+2 < size)and(j-1 >= 0)): 
-            not_safe &= s[i+2][j-1]
-          if((i-2 >= 0)and(j+1 < size)): 
-            not_safe &= s[i-2][j+1]
-          if((i-2 >= 0)and(j-1 >= 0)): 
-            not_safe &= s[i-2][j-1]
-          if((i+1 < size)and(j+2 < size)): 
-            not_safe &= s[i+1][j+2]
-          if((i-1 >= 0)and(j+2 < size)): 
-            not_safe &= s[i-1][j+2]
-          if((i+1 < size)and(j-2 >= 0)):      
-            not_safe &= s[i+1][j-2]
-          if((i-1 >= 0)and(j-2 >= 0)): 
-            not_safe &= s[i-1][j-2]
-          E.add_constraint(~n[i][j] | not_safe)
+      # enemy king constraints
+        not_safe = true
+        # check if corners are in bounds
+        if (i-1 >= 0 and j-1 >= 0):
+          not_safe &= s[i-1][j-1]
+        if (i-1 >= 0):
+          not_safe &= s[i-1][j]
+        if (i-1 >= 0 and j+1 < size):
+          not_safe &= s[i-1][j+1]
+        if (i+1 < size and j-1 >= 0):
+          not_safe &= s[i+1][j-1]
+        if (i+1 < size):
+          not_safe &= s[i+1][j]
+        if (i+1 < size and j+1 < size):
+          not_safe &= s[i+1][j+1]
+        if (j-1 >= 0):
+          not_safe &= s[i][j-1]
+        if (j+1 < size):
+          not_safe &= s[i][j+1]
+        E.add_constraint(~k[i][j] | not_safe)
 
-        # check spaces around king for checkmate
-        if starting_grid[i][j] == "K":
-          around_king = true
-          if (i-1 >= 0 and j-1 >= 0):
-            around_king &= s[i-1][j-1]
-          if (i-1 >= 0):
-            around_king &= s[i-1][j]
-          if (i-1 >= 0 and j+1 < size):
-            around_king &= s[i-1][j+1]
-          if (i+1 < size and j-1 >= 0):
-            around_king &= s[i+1][j-1]
-          if (i+1 < size):
-            around_king &= s[i+1][j]
-          if (i+1 < size and j+1 < size):
-            around_king &= s[i+1][j+1]
-          if (j-1 >= 0):
-            around_king &= s[i][j-1]
-          if (j+1 < size):
-            around_king &= s[i][j+1]
-          E.add_constraint(around_king.negate() | checkmate)
+      #knight constraints
+        not_safe = true
+        if((i+2 < size)and(j+1 < size)): 
+          not_safe &= s[i+2][j+1]
+        if((i+2 < size)and(j-1 >= 0)): 
+          not_safe &= s[i+2][j-1]
+        if((i-2 >= 0)and(j+1 < size)): 
+          not_safe &= s[i-2][j+1]
+        if((i-2 >= 0)and(j-1 >= 0)): 
+          not_safe &= s[i-2][j-1]
+        if((i+1 < size)and(j+2 < size)): 
+          not_safe &= s[i+1][j+2]
+        if((i-1 >= 0)and(j+2 < size)): 
+          not_safe &= s[i-1][j+2]
+        if((i+1 < size)and(j-2 >= 0)):      
+          not_safe &= s[i+1][j-2]
+        if((i-1 >= 0)and(j-2 >= 0)): 
+          not_safe &= s[i-1][j-2]
+        E.add_constraint(~n[i][j] | not_safe)
+
+      # check spaces around king for checkmate
+        around_king = true
+        around_king &= s[i][j]
+
+        if (i-1 >= 0 and j-1 >= 0):
+          around_king &= s[i-1][j-1]
+        if (i-1 >= 0):
+          around_king &= s[i-1][j]
+        if (i-1 >= 0 and j+1 < size):
+          around_king &= s[i-1][j+1]
+        if (i+1 < size and j-1 >= 0):
+          around_king &= s[i+1][j-1]
+        if (i+1 < size):
+          around_king &= s[i+1][j]
+        if (i+1 < size and j+1 < size):
+          around_king &= s[i+1][j+1]
+        if (j-1 >= 0):
+          around_king &= s[i][j-1]
+        if (j+1 < size):
+          around_king &= s[i][j+1]
+        E.add_constraint(~K[i][j] | around_king)
 
     #Return theory
     return E
@@ -269,7 +422,7 @@ if __name__ == "__main__":
     props = set_board(starting_grid)
     print(props)
     
-    T = example_theory(starting_grid)
+    T = example_theory()
     T.add_constraint(props)
 
     sol = T.solve()
