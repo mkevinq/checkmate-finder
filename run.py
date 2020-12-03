@@ -184,12 +184,10 @@ def example_theory(starting_grid):
           safe_j = j
           safe_i = i
           for x in range(size):
-            if (i == safe_i and x == safe_j):
-              continue
-            elif (x == safe_i and j == safe_j):
-              continue
-            not_safe &= s[i][x]
-            not_safe &= s[x][j]
+            if (x != safe_j):
+              not_safe &= s[i][x]
+            if (x != safe_i):
+              not_safe &= s[x][j]
           E.add_constraint(~r[i][j] | not_safe)
 
         #bishop constraints
@@ -230,14 +228,10 @@ def example_theory(starting_grid):
                 not_safe &= s[i-x][j-x]
             
             # Ignore the current position of the queen rows & cols
-            if (i == safe_i and x == safe_j):
-              continue
-            elif (x == safe_i and j == safe_j):
-              continue
-            # row
-            not_safe &= s[i][x]
-            # column
-            not_safe &= s[x][j]
+            if (x != safe_j):
+              not_safe &= s[i][x]
+            if (x != safe_i):
+              not_safe &= s[x][j]
 
           E.add_constraint(~q[i][j] | not_safe)
 
