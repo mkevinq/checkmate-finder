@@ -137,6 +137,31 @@ def display_solution(sol):
   print("q_grid:\n"+ q_grid)
   print("p_grid:\n"+ p_grid)
 
+  # Check for checkmate
+  # find king
+  found = False
+  for i in range(size):
+    for j in range(size):
+      if sol.get(f'K_{i}_{j}', True):
+        found = True
+      if found:
+        break
+    if found:
+      break
+
+  # check spaces around king
+  if (sol.get(s_d[i-1][j-1], True) and
+    sol.get(s_d[i-1][j], True) and
+    sol.get(s_d[i-1][j+1], True) and
+    sol.get(s_d[i+1][j-1], True) and
+    sol.get(s_d[i+1][j], True) and
+    sol.get(s_d[i+1][j+1], True) and
+    sol.get(s_d[i][j-1], True) and
+    sol.get(s_d[i][j+1], True)):
+    print("Checkmate")
+  else:
+    print("Not Checkmate")
+
 # Return a string of 0s and 1s for each proposition grid
 def string_grid(prop_grid, sol):
   grid = ''
