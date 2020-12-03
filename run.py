@@ -150,14 +150,14 @@ def display_solution(sol):
       break
 
   # check spaces around king
-  if (sol.get(s_d[i-1][j-1], True) and
-    sol.get(s_d[i-1][j], True) and
-    sol.get(s_d[i-1][j+1], True) and
-    sol.get(s_d[i+1][j-1], True) and
-    sol.get(s_d[i+1][j], True) and
-    sol.get(s_d[i+1][j+1], True) and
-    sol.get(s_d[i][j-1], True) and
-    sol.get(s_d[i][j+1], True)):
+  if (sol.get(s_d[i-1][j-1], False if i-1>=0 and j-1 >=0 else True) and
+    sol.get(s_d[i-1][j], False if i-1>=0 else True) and
+    sol.get(s_d[i-1][j+1], False if i-1>=0 and j<size else True) and
+    sol.get(s_d[i+1][j-1], False if i+1<size and j-1>=0 else True) and
+    sol.get(s_d[i+1][j], False if i+1<size else True) and
+    sol.get(s_d[i+1][j+1], False if i+1<size and j+1<size else True) and
+    sol.get(s_d[i][j-1], False if j-1>=0 else True) and
+    sol.get(s_d[i][j+1], False if j+1<0 else True)):
     print("Checkmate")
   else:
     print("Not Checkmate")
@@ -328,3 +328,4 @@ if __name__ == "__main__":
 
     sol = T.solve()
     display_solution(sol)
+    print("number of solutions: " + str(T.count_solutions()))
