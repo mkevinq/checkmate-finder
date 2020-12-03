@@ -21,7 +21,6 @@ def init_vars(name, disp):
   return grid
 
 # Create the variables
-grid = Var('grid')#starting grid
 K = init_vars('K', False) #King
 s = init_vars('s', False) #not safe square
 b = init_vars('b', False) #enemy bishop
