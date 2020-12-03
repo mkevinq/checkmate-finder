@@ -227,6 +227,27 @@ def example_theory(starting_grid):
               not_safe &= s[i-1][j+1]
           E.add_constraint(~p[i][j] | not_safe)
 
+        # enemy king constraints
+        if starting_grid[i][j] == "k":
+          # check if corners are in bounds
+          if (i-1 >= 0 and j-1 >= 0):
+            not_safe &= s[i-1][j-1]
+          if (i-1 >= 0):
+            not_safe &= s[i-1][j]
+          if (i-1 >= 0 and j+1 < size):
+            not_safe &= s[i-1][j+1]
+          if (i+1 < size and j-1 >= 0):
+            not_safe &= s[i+1][j-1]
+          if (i+1 < size):
+            not_safe &= s[i+1][j]
+          if (i+1 < size and j-1 >= 0):
+            not_safe &= s[i+1][j+1]
+          if (j-1 >= 0):
+            not_safe &= s[i][j-1]
+          if (j+1 < size):
+            not_safe &= s[i][j+1]
+          E.add_constraint(~k[i][j] | not_safe)
+
         #knight constraints
         if(starting_grid[i][j]=='n'):
           if((i+2 < size)and(j+1 < size)): 
