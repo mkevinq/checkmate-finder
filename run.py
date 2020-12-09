@@ -1,36 +1,31 @@
 from nnf import Var
 from lib204 import Encoding
-from nnf import true, false
+from nnf import true
 
 #Global variables
-size = 4 #size of grid (8 is an 8x8 grid)
+size = 4 #size of grid (4 is an 4x4 grid)
 DEBUG = True
 
 # Function to create grids for each chess pieces
-# If disp is true, it will return an array of strings
-# If disp is false, it will return an array of Var objs
-def init_vars(name, disp):
+def init_vars(name):
   grid = []
   for i in range(size):
     row = []
     for j in range(size):
-      if (disp):
-        row.append(f'{name}_{i}_{j}')
-      else:
-        row.append(Var(f'{name}_{i}_{j}'))
+      row.append(Var(f'{name}_{i}_{j}'))
     grid.append(row)
   return grid
 
 # Create the variables
 checkmate = Var("checkmate")
-K = init_vars('K', False) #King
-s = init_vars('s', False) #not safe square
-b = init_vars('b', False) #enemy bishop
-r = init_vars('r', False) #enemy rook
-k = init_vars('k', False) #enemy king
-n = init_vars('n', False) #enemy knight
-q = init_vars('q', False) #enemy queen
-p = init_vars('p', False) #enemy pawn
+K = init_vars('K') #King
+s = init_vars('s') #not safe square
+b = init_vars('b') #enemy bishop
+r = init_vars('r') #enemy rook
+k = init_vars('k') #enemy king
+n = init_vars('n') #enemy knight
+q = init_vars('q') #enemy queen
+p = init_vars('p') #enemy pawn
 
 #
 # Build an example full theory for your setting and return it.
