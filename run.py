@@ -4,6 +4,7 @@ from nnf import true, false
 
 #Global variables
 size = 5 #size of grid (8 is an 8x8 grid)
+DEBUG = True
 
 # Function to create grids for each chess pieces
 # If disp is true, it will return an array of strings
@@ -110,13 +111,112 @@ def set_board(grid):
         f &= ~K[i][j]
         f &= ~q[i][j]
       else:
-        f &= ~n[i][j]
-        f &= ~b[i][j]
-        f &= ~r[i][j]
-        f &= ~k[i][j]
-        f &= ~q[i][j]
         f &= ~K[i][j]
-        f &= ~p[i][j]
+  return f
+
+#Checks if the given space is in the constraint array
+def is_constraint(x, y, counters):
+  for i in range(len(counters)):
+    if (x == counters[i]//size and y == counters[i]%size):
+      return True
+  return False
+
+def add_piece_constraints(starting_grid, num_pieces, proposition, letter):
+  f = true
+  
+  counters = []
+  #set the counters
+  for i in range(num_pieces):
+    counters.append(0)
+
+  #if the counter exists then start counting
+  if (len(counters) >= 1):
+    all_cases_found = False
+    while(not all_cases_found):
+      #Print the current set if in debug mode
+      if (DEBUG):
+        for i in range(len(counters)):
+          print(counters[i]//size, counters[i]%size, end=", ")
+        print()
+
+      #Make sure that any pieces already placed on the board are ignored in the new constraints
+      no_old_pieces = True
+      for i in range(len(counters)):
+        if (starting_grid[counters[i]//size][counters[i]%size] == letter):
+          no_old_pieces = False
+      
+      if (no_old_pieces):
+        #Add the current set as a constraint
+        constraints = true
+        not_constraints = true
+        for i in range(len(counters)):
+          constraints &= proposition[counters[i]//size][counters[i]%size]
+        #Ensure that if the current set is "chosen", no other "pieces" can be placed
+        for x in range(size):
+          for y in range(size):
+            #Make sure the "piece" isn't already in that spot, and isn't part of the current set
+            if ((not starting_grid[x][y] == letter) and (not is_constraint(x,y,counters))):
+              not_constraints &= ~proposition[x][y]
+        f &= (constraints.negate() | not_constraints) #the true constraints imply the false ones
+
+        #Print the added constaint if in debug mode
+        if (DEBUG):
+          print(constraints)
+
+      #increment the count
+      counters[-1] += 1
+
+      #if a counter reaches the end, increase the previous by one (like a binary counter in base 'size') and
+      #reset the current to one more than the previous counter (no repetition)
+      #for i in range(len(k_counters)-1, -1, -1):
+      for i in range(-1, -(len(counters)+1), -1):
+        if (counters[0] >= size*size):
+          all_cases_found = True
+          if (DEBUG):
+            print("All cases found.")
+          break
+        elif (counters[i] > size*size+i):
+          counters[i-1] += 1
+          #if the previous has grown too large
+          if (counters[i-1] >= size*size+i):
+            digt_limit = 0
+            #check how far back the digits have reached their limit (consecutively)
+            for j in range(i-1, -(len(counters)+1), -1):
+              if (counters[j] >= size*size+j):
+                digt_limit += 1
+              else:
+                break
+            if (i-(digt_limit+1) < -len(counters)):
+              all_cases_found = True
+              if (DEBUG):
+                print("All cases found.")
+              break
+            else:
+              #set the current counter according to the last digit that can still be incremented
+              counters[i] = counters[i-(digt_limit+1)] + (digt_limit+2)
+          else:
+            counters[i] = counters[i-1] + 1
+  #If there are no additional pieces, restrict any additional pieces from being added
+  else:
+    not_constraints = true
+    for x in range(size):
+      for y in range(size):
+        #Make sure the "piece" isn't already in that spot
+        if (not starting_grid[x][y] == letter):
+          not_constraints &= ~proposition[x][y]
+    f &= not_constraints 
+  #Return the new constraints
+  return f
+
+#Adds restrictions for the number of each piece that can be placed
+def add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p):
+  f = true
+  f &= add_piece_constraints(starting_grid, num_k, k, "k")
+  f &= add_piece_constraints(starting_grid, num_q, q, "q")
+  f &= add_piece_constraints(starting_grid, num_r, r, "r")
+  f &= add_piece_constraints(starting_grid, num_b, b, "b")
+  f &= add_piece_constraints(starting_grid, num_n, n, "n")
+  f &= add_piece_constraints(starting_grid, num_p, p, "p")
   return f
 
 #Prints the solution
@@ -158,7 +258,7 @@ def iff(left, right):
 # Temporary example theory
 def example_theory():
     E = Encoding()
-
+    
     # Add constraints
     # rook constraints
     for i in range(size):
@@ -391,7 +491,7 @@ def example_theory():
         if (j+1 < size):
           around_king &= s[i][j+1]
         E.add_constraint(~K[i][j] | around_king)
-
+    
     #Return theory
     return E
 
@@ -412,15 +512,28 @@ if __name__ == "__main__":
     """
 
     starting_grid = [
-      ['-','-','K','-','-'],
-      ['-','-','p','-','-'],
-      ['-','-','q','-','-'],
+      ['k','-','-','-','-'],
+      ['-','r','-','-','-'],
       ['-','-','-','-','-'],
-      ['-','-','-','-','-']
+      ['-','-','-','-','-'],
+      ['K','-','-','-','-']
     ]
+
+    #list how many excess pieces there are that can be placed anywhere on the board
+    #(so long as the spot isn't already taken)
+    #Note: These counts do not include pieces already on the board (in the starting_grid)
+    num_k = 1 #number of enemy kings
+    num_q = 0 #number of enemy queens
+    num_r = 0 #number of enemy rooks
+    num_b = 0 #number of enemy bishops
+    num_n = 0 #number of enemy knights
+    num_p = 0 #number of enemy pawns
     
     props = set_board(starting_grid)
-    print(props)
+    #print("props from set_board:", props)
+
+    props &= add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p)
+    #print("added to props from num pieces given:", props)
     
     T = example_theory()
     T.add_constraint(props)
