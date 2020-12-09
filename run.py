@@ -17,7 +17,6 @@ def init_vars(name):
   return grid
 
 # Create the variables
-checkmate = Var("checkmate")
 K = init_vars('K') #King
 s = init_vars('s') #not safe square
 b = init_vars('b') #enemy bishop
