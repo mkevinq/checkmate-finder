@@ -2,8 +2,13 @@ from nnf import Var
 from lib204 import Encoding
 from nnf import true
 
-#Global variables
-size = 4 #size of grid (4 is an 4x4 grid)
+# Global variables
+
+# size of grid (4 is an 4x4 grid)
+# Note: higher grid sizes above 4 take REALLY long to calculate the number of solutions for
+# If attempting to use a higher grid size, try commenting out the count_solutions() call in display_solution()
+size = 4
+
 DEBUG = True
 
 # Function to create grids for each chess pieces
@@ -26,18 +31,11 @@ n = init_vars('n') #enemy knight
 q = init_vars('q') #enemy queen
 p = init_vars('p') #enemy pawn
 
-#
-# Build an example full theory for your setting and return it.
-#
-#  There should be at least 10 variables, and a sufficiently large formula to describe it (>50 operators).
-#  This restriction is fairly minimal, and if there is any concern, reach out to the teaching staff to clarify
-#  what the expectations are.
-
-# Sets the propositions based on the dict given
+# Sets the propositions based on the board configuration given
 def set_board(grid):
   f = true
-  #For every position recorded, set the proposition for the piece in that 
-  #position to true
+  # For every grid position, set the proposition for the piece in that position to true
+  # It also ensures that no other pieces occupy the same spot (every other piece is set to false for that spot)
   for i in range(size):
     for j in range(size):
       if (grid[i][j] == 'K'):
@@ -207,27 +205,24 @@ def add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p):
 
 #Prints the solution
 def display_solution(sol):
+  # If the model is satisfied, that means we found a checkmate solution
   if T.is_satisfiable():
     print("Checkmate")
     # it may take a while to calculate the solutions
     print("solutions: " + str(T.count_solutions()))
-    K_grid = string_grid("K", sol)
-    s_grid = string_grid("s", sol)
-    r_grid = string_grid("r", sol)
-    k_grid = string_grid("k", sol)
-    n_grid = string_grid("n", sol)
-    q_grid = string_grid("q", sol)
-    p_grid = string_grid("p", sol)
-    
-    print("K_grid:\n"+ K_grid)
-    print("s_grid:\n"+ s_grid)
-    print("r_grid:\n"+ r_grid)
-    print("k_grid:\n"+ k_grid)
-    print("n_grid:\n"+ n_grid)
-    print("q_grid:\n"+ q_grid)
-    print("p_grid:\n"+ p_grid)
+
+    # Print the grids for each of our variables
+    string_grid("K", sol)
+    string_grid("s", sol)
+    string_grid("r", sol)
+    string_grid("k", sol)
+    string_grid("n", sol)
+    string_grid("q", sol)
+    string_grid("p", sol)
+  
+  # Otherwise, there is no possible checkmate configuration
   else:
-    print("No Checkmate")
+    print("No Checkmate Found")
 
 # Return a string of 0s and 1s for each proposition grid
 def string_grid(piece, sol):
@@ -236,34 +231,35 @@ def string_grid(piece, sol):
     for j in range(size):
       grid += {True: '1', False: '0'}[sol.get(f'{piece}_{i}_{j}', False)]
     grid += '\n'
-  return grid
+  print(f'{piece}_grid:\n' + grid)
 
+# Helper function for creating if and only if statements
 def iff(left, right):
   return (left.negate() | right) & (right.negate() | left)
 
 # Temporary example theory
-def example_theory():
+def final_theory():
     E = Encoding()
     
-    # Add constraints
-    # rook constraints
+    # Add constraints to every square in the grid
     for i in range(size):
       for j in range(size):
-        not_safe = true
+        # 😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂
 
-        # constraint that says this square is safe if and only if there are no pieces in the way
-        # this is horrible
+        #
+        # First: Create the constraint that says a square is safe if and only if there are no pieces in the way
+        #
+
         no_danger = true
 
-        # 😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂😂
-        # check if pawn is not in the way
+        # Check if there are no pawns that can move into this square
         if (i+1 < size):
           if (j-1 >= 0):
             no_danger &= ~p[i+1][j-1]
           if (j+1 < size):
             no_danger &= ~p[i+1][j+1]
         
-        # check if bishop is not in the way
+        # Check if there are no bishops that can move into this square
         for x in range(1, size):
           # diagonal going up right
           if (i+x < size) and (j+x < size):
@@ -278,7 +274,7 @@ def example_theory():
           if (i-x >= 0) and (j-x >= 0):
             no_danger &= ~b[i-x][j-x]
         
-        # check if rook is not in the way
+        # Check if there are no rooks that can move into this square
         safe_j = j
         safe_i = i
         for x in range(size):
@@ -287,7 +283,7 @@ def example_theory():
           if (x != safe_i):
             no_danger &= ~r[x][j]
 
-        # check if queen is not in the way
+        # Check if there are no queens that can move into this square
         safe_j = j
         safe_i = i
         for x in range(size):
@@ -312,7 +308,7 @@ def example_theory():
           if (x != safe_i):
             no_danger &= ~q[x][j]
 
-        # check if knight is not in the way
+        # Check if there are no knights that can move into this square
         if((i+2 < size)and(j+1 < size)): 
           no_danger &= ~n[i+2][j+1]
         if((i+2 < size)and(j-1 >= 0)): 
@@ -330,7 +326,7 @@ def example_theory():
         if((i-1 >= 0)and(j-2 >= 0)): 
           no_danger &= ~n[i-1][j-2]
 
-        # check if enemy king is not in the way
+        # Check if there are no enemy kings that can move into this square
         if (i-1 >= 0 and j-1 >= 0):
           no_danger &= ~k[i-1][j-1]
         if (i-1 >= 0):
@@ -348,9 +344,15 @@ def example_theory():
         if (j+1 < size):
           no_danger &= ~k[i][j+1]
 
+        # Finally add the constraint that says a square is safe if and only if there are no pieces can move into it
         E.add_constraint(iff(no_danger, ~s[i][j]))
 
-        # rook constraints
+        #
+        # Next: Add constraints that will determine when a square is not safe
+        #
+
+        # Check if a rook can move into the square
+        not_safe = true
         safe_j = j
         safe_i = i
         for x in range(size):
@@ -360,7 +362,7 @@ def example_theory():
             not_safe &= s[x][j]
         E.add_constraint(~r[i][j] | not_safe)
 
-      #bishop constraints
+        # Check if a bishop can move into the square
         not_safe = true
         for x in range(1, size):
           # diagonal going up right
@@ -377,7 +379,7 @@ def example_theory():
             not_safe &= s[i-x][j-x]
         E.add_constraint(~b[i][j] | not_safe)
 
-      # queen constraints
+        # Check if a queen can move into the square
         not_safe = true
         safe_j = j
         safe_i = i
@@ -397,7 +399,7 @@ def example_theory():
             if (i-x >= 0) and (j-x >= 0):
               not_safe &= s[i-x][j-x]
           
-          # Ignore the current position of the queen rows & cols
+          # Ignore the current position of the queen
           if (x != safe_j):
             not_safe &= s[i][x]
           if (x != safe_i):
@@ -405,9 +407,8 @@ def example_theory():
 
         E.add_constraint(~q[i][j] | not_safe)
 
-      # pawn constraints
+        # Check if a pawn can move into the square
         not_safe = true
-        # Make sure the attack spots are in bounds
         if (i-1 >= 0):
           if (j-1 >= 0):
             not_safe &= s[i-1][j-1]
@@ -415,9 +416,8 @@ def example_theory():
             not_safe &= s[i-1][j+1]
         E.add_constraint(~p[i][j] | not_safe)
 
-      # enemy king constraints
+        # Check if an enemy king can move into the square
         not_safe = true
-        # check if corners are in bounds
         if (i-1 >= 0 and j-1 >= 0):
           not_safe &= s[i-1][j-1]
         if (i-1 >= 0):
@@ -436,7 +436,7 @@ def example_theory():
           not_safe &= s[i][j+1]
         E.add_constraint(~k[i][j] | not_safe)
 
-      #knight constraints
+        # Check if an knight can move into the square
         not_safe = true
         if((i+2 < size)and(j+1 < size)): 
           not_safe &= s[i+2][j+1]
@@ -456,7 +456,11 @@ def example_theory():
           not_safe &= s[i-1][j-2]
         E.add_constraint(~n[i][j] | not_safe)
 
-      # check spaces around king for checkmate
+        #
+        # Next: Check if the squares around the friendly king are not safe
+        # Our constraint says that the friendly king must be in checkmate
+        #
+
         around_king = true
         around_king &= s[i][j]
 
@@ -483,20 +487,7 @@ def example_theory():
 
 # Start of file when run
 if __name__ == "__main__":
-
-    """
-    T = example_theory()
-
-    print("\nSatisfiable: %s" % T.is_satisfiable())
-    print("# Solutions: %d" % T.count_solutions())
-    print("   Solution: %s" % T.solve())
-
-    print("\nVariable likelihoods:")
-    for v,vn in zip([a,b,c,x,y,z], 'abcxyz'):
-        print(" %s: %.2f" % (vn, T.likelihood(v)))
-    print()
-    """
-
+    # Create a board configuration
     starting_grid = [
       ['k','-','-','-'],
       ['-','r','-','-'],
@@ -514,13 +505,13 @@ if __name__ == "__main__":
     num_n = 0 #number of enemy knights
     num_p = 0 #number of enemy pawns
     
+    # Configure the constraints given the initial board configuration (starting_grid)
     props = set_board(starting_grid)
-    #print("props from set_board:", props)
 
+    # Configure the constraints that allow the model to place pieces the given pieces on the board
     props &= add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p)
-    #print("added to props from num pieces given:", props)
     
-    T = example_theory()
+    T = final_theory()
     T.add_constraint(props)
 
     sol = T.solve()
