@@ -9,7 +9,7 @@ from nnf import true
 # If attempting to use a higher grid size, try commenting out the count_solutions() call in display_solution()
 size = 4
 
-DEBUG = True
+DEBUG = False
 
 # Function to create grids for each chess pieces
 def init_vars(name):
@@ -209,12 +209,14 @@ def display_solution(sol):
   if T.is_satisfiable():
     print("Checkmate")
     # it may take a while to calculate the solutions
-    print("solutions: " + str(T.count_solutions()))
+    print("Calculating number of solutions (may take a while)")
+    print("Number of solutions: " + str(T.count_solutions()))
 
     # Print the grids for each of our variables
     string_grid("K", sol)
     string_grid("s", sol)
     string_grid("r", sol)
+    string_grid("b", sol)
     string_grid("k", sol)
     string_grid("n", sol)
     string_grid("q", sol)
@@ -485,8 +487,7 @@ def final_theory():
     #Return theory
     return E
 
-# Start of file when run
-if __name__ == "__main__":
+def test_case_1():
     # Create a board configuration
     starting_grid = [
       ['k','-','-','-'],
@@ -511,6 +512,87 @@ if __name__ == "__main__":
     # Configure the constraints that allow the model to place pieces the given pieces on the board
     props &= add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p)
     
+    return props
+
+def test_case_2():
+    starting_grid = [
+      ['-','-','K','-'],
+      ['-','-','-','-'],
+      ['-','-','-','-'],
+      ['-','-','-','-']
+    ]
+
+    num_k = 0
+    num_q = 1
+    num_r = 0
+    num_b = 0
+    num_n = 0
+    num_p = 1
+    
+    props = set_board(starting_grid)
+    props &= add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p)
+    
+    return props
+
+def test_case_3():
+    starting_grid = [
+      ['-','-','-','-','-'],
+      ['-','-','K','q','-'],
+      ['-','r','-','-','-'],
+      ['p','-','-','-','-'],
+      ['-','-','-','-','-']
+    ]
+
+    num_k = 0
+    num_q = 0
+    num_r = 0
+    num_b = 1
+    num_n = 0
+    num_p = 0
+    
+    props = set_board(starting_grid)
+    props &= add_pieces(starting_grid, num_k, num_q, num_r, num_b, num_n, num_p)
+    
+    return props
+
+# Start of file when run
+if __name__ == "__main__":
+    #
+    # Test case 1
+    #
+    print("Test Case 1")
+    props = test_case_1()
+    T = final_theory()
+    T.add_constraint(props)
+
+    sol = T.solve()
+    display_solution(sol)
+
+    #
+    # Test case 2
+    #
+    print("Test Case 2")
+    props = test_case_2()
+    T = final_theory()
+    T.add_constraint(props)
+
+    sol = T.solve()
+    display_solution(sol)
+
+    #
+    # Test case 3
+    #
+    print("Test Case 3")
+    size = 5
+    K = init_vars('K')
+    s = init_vars('s')
+    b = init_vars('b')
+    r = init_vars('r')
+    k = init_vars('k')
+    n = init_vars('n')
+    q = init_vars('q')
+    p = init_vars('p')
+    props = test_case_3()
     T = final_theory()
     T.add_constraint(props)
 
