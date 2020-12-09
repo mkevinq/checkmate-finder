@@ -16,7 +16,7 @@ Our project is designed to find if a given board (of variable size) is or can be
 
 If there are any questions regarding the project, implementation, documentation, or otherwise, feel free to contact us! Here are our emails:
 
-Callum Kipin - 18cgwk@queensu.ca
-Evan Kilburn - 18ewk@queensu.ca
-Kevin Quijalvo - 18mkq@queensu.ca
-Steven Wen - 18yw85@queensu.ca
+* Callum Kipin - 18cgwk@queensu.ca
+* Evan Kilburn - 18ewk@queensu.ca
+* Kevin Quijalvo - 18mkq@queensu.ca
+* Steven Wen - 18yw85@queensu.ca
