@@ -11,3 +11,12 @@ Our project is designed to find if a given board (of variable size) is or can be
 * `documents`: Contains folders for both of our draft and final submissions. README.md files are included in both.
 * `run.py`: General wrapper script that contains all relevant code. The model, constraints, propositions, and all other code is contained here.
 * `test.py`: Tests to confirm that this submission has everything required. This essentially just means it will check for the right files and sufficient theory size.
+
+## Contact
+
+If there are any questions regarding the project, implementation, documentation, or otherwise, feel free to contact us! Here are our emails:
+
+Callum Kipin - 18cgwk@queensu.ca
+Evan Kilburn - 18ewk@queensu.ca
+Kevin Quijalvo - 18mkq@queensu.ca
+Steven Wen - 18yw85@queensu.ca
