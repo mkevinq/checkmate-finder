@@ -31,14 +31,6 @@ k = init_vars('k', False) #enemy king
 n = init_vars('n', False) #enemy knight
 q = init_vars('q', False) #enemy queen
 p = init_vars('p', False) #enemy pawn
-K_d = init_vars('K', True) #_d is the display copy of each array
-s_d = init_vars('s', True) 
-b_d = init_vars('b', True) 
-r_d = init_vars('r', True) 
-k_d = init_vars('k', True) 
-n_d = init_vars('n', True) 
-q_d = init_vars('q', True) 
-p_d = init_vars('p', True)
 
 #
 # Build an example full theory for your setting and return it.
@@ -225,13 +217,13 @@ def display_solution(sol):
     print("Checkmate")
     # it may take a while to calculate the solutions
     print("solutions: " + str(T.count_solutions()))
-    K_grid = string_grid(K_d, sol)
-    s_grid = string_grid(s_d, sol)
-    r_grid = string_grid(r_d, sol)
-    k_grid = string_grid(k_d, sol)
-    n_grid = string_grid(n_d, sol)
-    q_grid = string_grid(q_d, sol)
-    p_grid = string_grid(p_d, sol)
+    K_grid = string_grid("K", sol)
+    s_grid = string_grid("s", sol)
+    r_grid = string_grid("r", sol)
+    k_grid = string_grid("k", sol)
+    n_grid = string_grid("n", sol)
+    q_grid = string_grid("q", sol)
+    p_grid = string_grid("p", sol)
     
     print("K_grid:\n"+ K_grid)
     print("s_grid:\n"+ s_grid)
@@ -244,11 +236,11 @@ def display_solution(sol):
     print("No Checkmate")
 
 # Return a string of 0s and 1s for each proposition grid
-def string_grid(prop_grid, sol):
+def string_grid(piece, sol):
   grid = ''
   for i in range(size):
     for j in range(size):
-      grid += {True: '1', False: '0'}[sol.get(prop_grid[i][j], False)]
+      grid += {True: '1', False: '0'}[sol.get(f'{piece}_{i}_{j}', False)]
     grid += '\n'
   return grid
 
