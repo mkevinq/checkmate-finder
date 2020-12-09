@@ -3,7 +3,7 @@ from lib204 import Encoding
 from nnf import true, false
 
 #Global variables
-size = 5 #size of grid (8 is an 8x8 grid)
+size = 4 #size of grid (8 is an 8x8 grid)
 DEBUG = True
 
 # Function to create grids for each chess pieces
@@ -512,11 +512,10 @@ if __name__ == "__main__":
     """
 
     starting_grid = [
-      ['k','-','-','-','-'],
-      ['-','r','-','-','-'],
-      ['-','-','-','-','-'],
-      ['-','-','-','-','-'],
-      ['K','-','-','-','-']
+      ['k','-','-','-'],
+      ['-','r','-','-'],
+      ['-','-','-','-'],
+      ['K','-','-','-']
     ]
 
     #list how many excess pieces there are that can be placed anywhere on the board
